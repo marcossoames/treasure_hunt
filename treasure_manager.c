@@ -12,8 +12,6 @@ Se pot vizualiza datele tuturor comorilor dintr-un hunt (parcurgand reursiv toat
 plus data ultimei modificari si dimensiunea fisierului.
 In fiecare director hunt se va crea si un fisier log de tipul logged_hunt.txt in care vor fi salvate opeatiile efectuate de user asupra hunt-ului respectiv.
 In directorul treasure_hunt se vor crea symbolic link-uri catre fisierele logged_hunt de forma logged_hunt-<ID>.
-
-PHASE 2:
 */
 
 #include <stdio.h>
@@ -142,6 +140,7 @@ void log_operation(const char *hunt_id, const char *operatie)
 
 // Functie pentru symlink-uri
 // LAB 4 (Apeluri sistem pentru lucrul cu fisiere)
+/*
 void create_symlink(const char *hunt_id)
 {
   char symlink_path[256];
@@ -168,6 +167,34 @@ void create_symlink(const char *hunt_id)
     char *eroare_creare_symlink = "Eroare la crearea symlink-ului.\n";
     write(1, eroare_creare_symlink, strlen(eroare_creare_symlink));
     exit(-1);
+  }
+}
+*/
+void create_symlink(const char *hunt_id)
+{
+  char symlink_path[256];
+  memset(symlink_path, 0, sizeof(symlink_path));
+  snprintf(symlink_path, sizeof(symlink_path), "logged_hunt-%s.txt", hunt_id);
+
+  // Verific daca symlink-ul exista deja
+  struct stat st;
+  if (lstat(symlink_path, &st) == 0)
+  {
+    char *eroare_symlink = "Symlink-ul exista deja!\n";
+    write(1, eroare_symlink, strlen(eroare_symlink));
+    return; // nu e nevoie de exit, putem continua
+  }
+
+  // Construieste calea catre fisierul real logged_hunt.txt
+  char target_path[256];
+  snprintf(target_path, sizeof(target_path), "%s/logged_hunt.txt", hunt_id);
+
+  // Creeaza symlink-ul corect
+  if (symlink(target_path, symlink_path) != 0)
+  {
+    char *eroare_creare_symlink = "Eroare la crearea symlink-ului.\n";
+    write(1, eroare_creare_symlink, strlen(eroare_creare_symlink));
+    return;
   }
 }
 
@@ -317,7 +344,7 @@ void list_hunt_treasures(const char *hunt_id)
         strcat(mesaj0, "\n");
         write(1, mesaj0, strlen(mesaj0));
 
-        // mesaj1: "Cunt: <nume_comoara>\n"
+        // mesaj1: "Count: <nume_comoara>\n"
         char k_char[10];          // vaianta char a contorului de comori
         sprintf(k_char, "%d", k); // convertesc int la string
         strcpy(mesaj1, "Comoara: ");
@@ -560,7 +587,7 @@ int main(int argc, char *argv[])
       *newline = '\0';
     }
 
-    int nr_comoara = atoi(buffer);
+    int nr_comoara = atoi(buffer); // Convertesc din char in int
     view_hunt_treasure(hunt_id, nr_comoara);
   }
   else if (strcmp(comanda, "remove_treasure") == 0)
